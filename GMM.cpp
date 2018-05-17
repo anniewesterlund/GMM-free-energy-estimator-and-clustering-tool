@@ -464,10 +464,6 @@ void GMM::write_to_file(estimator_attributes GMM_obj, Eigen::MatrixXd x){
 	GMM::project_on_Gaussians(GMM_obj, x);
 	Eigen::VectorXd density = GMM::GM_density(GMM_obj);
 	
-	for(int i = 0; i< density.rows(); i++){
-		density(i) = -0.3*log(density(i));
-	}
-	
 	cout << density << endl;
 	
 	for(int iComp = 0; iComp < GMM_obj.nComponents_;iComp++){
