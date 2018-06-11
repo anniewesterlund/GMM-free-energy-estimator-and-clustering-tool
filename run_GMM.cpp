@@ -1,9 +1,9 @@
 /**********************************
 *
-* 	Cellular automata main function
+* 	Gaussian mixture model free energy estimator main function
 * 	Annie Westerlund
 *
-*	2017 - SI3080
+*	2018, KTH
 *
 **********************************/
 
