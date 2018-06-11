@@ -4,15 +4,14 @@ Implementation of free energy estimator based on Gaussian Mixture models and cro
 https://pubs.acs.org/doi/abs/10.1021/acs.jctc.7b00346
 
 Intalling:
-$ mkdir build
+- mkdir build
 
-$ cd build
+- cd build
 
-$ cmake ..
+- cmake ..
 
-$ make
-
-$ sudo make install
+- make
+- sudo make install
 
 Running on data set "data.dat" with dimensionality 3:
 $ GMM_free_energy data.dat 3 > free_energy.txt
