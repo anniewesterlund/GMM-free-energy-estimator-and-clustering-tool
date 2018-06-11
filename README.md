@@ -5,9 +5,13 @@ https://pubs.acs.org/doi/abs/10.1021/acs.jctc.7b00346
 
 Intalling:
 $ mkdir build
+
 $ cd build
+
 $ cmake ..
+
 $ make
+
 $ sudo make install
 
 Running on data set "data.dat" with dimensionality 3:
