@@ -74,14 +74,8 @@ estimator_attributes::estimator_attributes(int nGaussianComponents, Eigen::Matri
 		}
 	}
 	
-	Eigen::MatrixXd tmp_cov(nDims,nDims);
+	Eigen::MatrixXd covariance = Eigen::MatrixXd::Zero(nDims,nDims);
 	Eigen::VectorXd average_point(nDims);
-	
-	for(int i = 0; i < nDims; i++){
-		for(int j = 0; j < nDims; j++){
-			tmp_cov(i,j) = 0;
-		}
-	}
 	
 	// Set component means and amplitudes
 	for(int iComponent = 0; iComponent < nGaussianComponents; iComponent++){
@@ -100,14 +94,14 @@ estimator_attributes::estimator_attributes(int nGaussianComponents, Eigen::Matri
 		for(int jDim = 0; jDim < nDims; jDim++){
 			#pragma omp parallel for
 			for(int iPoint = 0; iPoint < nPoints; iPoint++){
-				tmp_cov(iDim,jDim) += (x(iPoint,iDim)-average_point(iDim))*(x(iPoint,jDim)-average_point(jDim))/double((nPoints-1));
+				covariance(iDim,jDim) += (x(iPoint,iDim)-average_point(iDim))*(x(iPoint,jDim)-average_point(jDim))/double((nPoints-1));
 			}
 		}
 	}
 	
 	// Set initial covariance guess on all components to the covariance of the entire data set.
 	for(int iComponent = 0; iComponent < nGaussianComponents; iComponent++){
-		estimator_attributes::covariances_[iComponent] = tmp_cov;
+		estimator_attributes::covariances_[iComponent] = covariance;
 	}
 }	
 
@@ -129,10 +123,10 @@ void GMM::maximization_step(estimator_attributes &GMM_attributes, Eigen::MatrixX
 	
 	int nPoints = x.rows();
 	Eigen::VectorXd weighted_points(GMM::nDims_);
-	Eigen::MatrixXd tmp_exp1(GMM::nDims_,nPoints);
-	Eigen::MatrixXd tmp_exp2(nPoints,GMM::nDims_);
-	Eigen::MatrixXd tmp_cov(GMM::nDims_,GMM::nDims_);
-		
+	Eigen::MatrixXd exponent1(GMM::nDims_,nPoints);
+	Eigen::MatrixXd exponent2(nPoints,GMM::nDims_);
+	Eigen::MatrixXd covariance(GMM::nDims_,GMM::nDims_);
+	
 	// Update amplitudes
 	Eigen::VectorXd component_weights = GMM_attributes.membership_weights_.rowwise().sum();
 	GMM_attributes.amplitudes_ = component_weights/double(nPoints);
@@ -148,18 +142,18 @@ void GMM::maximization_step(estimator_attributes &GMM_attributes, Eigen::MatrixX
 		for(int iDim = 0; iDim < GMM::nDims_; iDim++){
 			#pragma omp parallel for
     		for(int iPoint = 0; iPoint < nPoints; iPoint++){
-    			tmp_exp1(iDim,iPoint) = x(iPoint,iDim)-GMM_attributes.centers_[iComponent](iDim);
+    			exponent1(iDim,iPoint) = x(iPoint,iDim)-GMM_attributes.centers_[iComponent](iDim);
     		}
     	}
     	
     	for(int iDim = 0; iDim < GMM::nDims_; iDim++){
     		#pragma omp parallel for
     		for(int iPoint = 0; iPoint < nPoints; iPoint++){
-    			tmp_exp2(iPoint,iDim) = tmp_exp1(iDim,iPoint)*GMM_attributes.membership_weights_(iComponent,iPoint);
+    			exponent2(iPoint,iDim) = exponent1(iDim,iPoint)*GMM_attributes.membership_weights_(iComponent,iPoint);
     		}
     	}
-   	 	tmp_cov = tmp_exp1*tmp_exp2;
-    	GMM_attributes.covariances_[iComponent] = tmp_cov/component_weights(iComponent)+ GMM_attributes.eye_stability_;	
+   	 	covariance = exponent1*exponent2;
+    	GMM_attributes.covariances_[iComponent] = covariance/component_weights(iComponent)+ GMM_attributes.eye_stability_;	
     	
 	}
 	return;

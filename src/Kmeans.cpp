@@ -14,13 +14,13 @@ void Kmeans::assign_cluster_labels(Eigen::MatrixXd x){
 	
 	#pragma omp parallel for
 	for(int iPoint=0; iPoint < nPoints; iPoint++){
-		Eigen::VectorXd tmpPoint = x.row(iPoint);
-		double minDistance = (Kmeans::cluster_centers_[0]-tmpPoint).norm();
+		Eigen::VectorXd point = x.row(iPoint);
+		double minDistance = (Kmeans::cluster_centers_[0]-point).norm();
 		for(int iComponent = 1; iComponent < Kmeans::nComponents_; iComponent++){
-			double tmpDistance = (Kmeans::cluster_centers_[iComponent]-tmpPoint).norm();
+			double distance = (Kmeans::cluster_centers_[iComponent]-point).norm();
 			Kmeans::cluster_labels_[iPoint] = 0;
-			if (tmpDistance < minDistance){
-				tmpDistance = minDistance;
+			if (distance < minDistance){
+				minDistance = distance;
 				Kmeans::cluster_labels_[iPoint] = iComponent;
 			}
 		}
@@ -33,7 +33,7 @@ void Kmeans::update_centers(Eigen::MatrixXd x){
 	int nPoints = x.rows();
 	int nDims = Kmeans::cluster_centers_[0].size();
 	double counter = 0.0;
-	Eigen::VectorXd tmpCenter(nDims);
+	Eigen::VectorXd center(nDims);
 	
 	for(int iComponent = 0; iComponent < Kmeans::nComponents_; iComponent++){
 		for(int iDim = 0; iDim < nDims; iDim++){
@@ -45,7 +45,7 @@ void Kmeans::update_centers(Eigen::MatrixXd x){
 					tmpCenterCoord += x(iPoint,iDim);
 				}
 			}
-			tmpCenter(iDim) = tmpCenterCoord;
+			center(iDim) = tmpCenterCoord;
 		}
 		
 		counter = 0.0;
@@ -57,11 +57,11 @@ void Kmeans::update_centers(Eigen::MatrixXd x){
 		}
 		
 		for(int iDim = 0; iDim < nDims; iDim++){
-			tmpCenter(iDim) /= counter;
+			center(iDim) /= counter;
 		}
 		
 		if (counter > 0){
-			Kmeans::cluster_centers_[iComponent] = tmpCenter;
+			Kmeans::cluster_centers_[iComponent] = center;
 		}
 	}
 	return;

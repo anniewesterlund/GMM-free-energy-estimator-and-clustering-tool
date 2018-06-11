@@ -21,12 +21,14 @@ Eigen::VectorXd GMDensity::multivariate_normal_pdf(Eigen::MatrixXd x, Eigen::Vec
 	Eigen::MatrixXd inv_covariance = covariance.inverse();
 	double cov_det = covariance.determinant();
 	double normalization_factor = sqrt(pow(2.0*GMDensity::pi_,nDims)*cov_det);
+	double exponent;
+	Eigen::VectorXd deviation;
 	
 	#pragma omp parallel for
 	for(int iPoint = 0; iPoint < nPoints; iPoint++){
-		Eigen::VectorXd tmp_dev =  x.row(iPoint).transpose()-mean;		
-		double tmp_exponent = tmp_dev.transpose()*inv_covariance*tmp_dev;
-		component_projection(iPoint) = exp(-tmp_exponent/2)/normalization_factor;
+		deviation =  x.row(iPoint).transpose()-mean;		
+		exponent = deviation.transpose()*inv_covariance*deviation;
+		component_projection(iPoint) = exp(-exponent/2)/normalization_factor;
 	}
 	
 	return component_projection;
