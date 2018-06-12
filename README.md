@@ -12,7 +12,7 @@ Installing estimator:
 - make
 - sudo make install
 
-Running free energy estimation (anywhere) on data set "data.dat" with dimensionality 3:
+Example of running free energy estimation on data set "data.dat" with dimensionality 3:
 - GMM_free_energy data.dat 3 > free_energy.txt
 
 free_energy.txt contains the free energy corresponding to each point in data.dat.
