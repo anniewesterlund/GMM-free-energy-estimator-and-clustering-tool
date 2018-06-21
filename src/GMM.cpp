@@ -17,41 +17,10 @@
 #include <omp.h>
 #include "Kmeans.cpp"
 #include "GaussianMixtureDensity.cpp"
+// #include "ExpectationMaximization.cpp"
 #include "GMM.h"
 
 using namespace std;
-
-GMM::GMM(vector<vector<double>> data, double convergence_tol, int max_iterations){
-	GMM::nPoints_ = data.size();
-	GMM::convergence_tol_ = convergence_tol;
-	GMM::max_iter_ = max_iterations;
-		
-	if (GMM::nPoints_ > 0){
-		GMM::cluster_indices_ = vector<int>(GMM::nPoints_);
-		GMM::nDims_ = data[0].size();
-	}else{
-		cout << "No points supplied." << endl;
-		exit(1);
-	}
-	
-	// Store data in matrix of size [nPoints x nDims]
-	// Set training and validation set with 50/50 split
-	GMM::x_ = Eigen::MatrixXd(GMM::nPoints_,GMM::nDims_);
-	GMM::training_data_ = Eigen::MatrixXd(GMM::nPoints_/2,GMM::nDims_);
-	GMM::validation_data_ = Eigen::MatrixXd(int(round(double(GMM::nPoints_)/2.0)),GMM::nDims_);
-	
-	for(int i = 0; i < GMM::nPoints_; i++){
-		for(int j = 0; j < GMM::nDims_; j++){
-			GMM::x_(i,j) = data[i][j];
-			if(i < GMM::nPoints_/2){
-				GMM::training_data_(i,j) = data[i][j];
-			}else{
-				GMM::validation_data_(i-nPoints_/2,j) = data[i][j];
-			}
-		}
-	}
-}
-
 
 estimator_attributes::estimator_attributes(int nGaussianComponents, Eigen::MatrixXd x):nComponents_{nGaussianComponents}{
 
@@ -59,8 +28,8 @@ estimator_attributes::estimator_attributes(int nGaussianComponents, Eigen::Matri
 	int nDims = x.cols();
 	estimator_attributes::nComponents_ = nGaussianComponents;
 	
-	estimator_attributes::centers_ = vector<Eigen::VectorXd>(nGaussianComponents);
-	estimator_attributes::covariances_ = vector<Eigen::MatrixXd>(nGaussianComponents);
+	estimator_attributes::centers_ = std::vector<Eigen::VectorXd>(nGaussianComponents);
+	estimator_attributes::covariances_ = std::vector<Eigen::MatrixXd>(nGaussianComponents);
 	estimator_attributes::amplitudes_ = Eigen::VectorXd(nGaussianComponents);
 	estimator_attributes::Gaussian_projections_ = Eigen::MatrixXd(nPoints,nGaussianComponents);
 	estimator_attributes::membership_weights_ = Eigen::MatrixXd(nGaussianComponents,nPoints);
@@ -104,6 +73,39 @@ estimator_attributes::estimator_attributes(int nGaussianComponents, Eigen::Matri
 		estimator_attributes::covariances_[iComponent] = covariance;
 	}
 }	
+
+GMM::GMM(vector<vector<double>> data, double convergence_tol, int max_iterations, std::string file_label){
+	GMM::nPoints_ = data.size();
+	GMM::convergence_tol_ = convergence_tol;
+	GMM::max_iter_ = max_iterations;
+	
+	GMM::file_label_ = file_label;
+	
+	if (GMM::nPoints_ > 0){
+		GMM::cluster_indices_ = vector<int>(GMM::nPoints_);
+		GMM::nDims_ = data[0].size();
+	}else{
+		cout << "No points supplied." << std::endl;
+		exit(1);
+	}
+	
+	// Store data in matrix of size [nPoints x nDims]
+	// Set training and validation set with 50/50 split
+	GMM::x_ = Eigen::MatrixXd(GMM::nPoints_,GMM::nDims_);
+	GMM::training_data_ = Eigen::MatrixXd(GMM::nPoints_/2,GMM::nDims_);
+	GMM::validation_data_ = Eigen::MatrixXd(int(round(double(GMM::nPoints_)/2.0)),GMM::nDims_);
+	
+	for(int i = 0; i < GMM::nPoints_; i++){
+		for(int j = 0; j < GMM::nDims_; j++){
+			GMM::x_(i,j) = data[i][j];
+			if(i < GMM::nPoints_/2){
+				GMM::training_data_(i,j) = data[i][j];
+			}else{
+				GMM::validation_data_(i-nPoints_/2,j) = data[i][j];
+			}
+		}
+	}
+}
 
 void GMM::expectation_step(estimator_attributes &GMM_attributes){
 	
@@ -195,7 +197,7 @@ estimator_attributes GMM::train_density(int nGaussianComponents, Eigen::MatrixXd
 		}
 		
 	}
-	clog << "nComponents: " << nGaussianComponents << ", nIterations: " << counter << "\n";
+	std::cout << "nComponents: " << nGaussianComponents << ", nIterations: " << counter << "\n";
 	
 	return GMM_attributes;
 }
@@ -211,13 +213,14 @@ void GMM::fitDensity(int nMinGaussianComponents, int nMaxGaussianComponents){
 	
 	Eigen::VectorXd log_likelihood(nMaxGaussianComponents-nMinGaussianComponents+1);
 	GMM::densityEvaluator_ = GMDensity();
+	//GMM::expectationMaximization_ = EM(GMM::nDims_);
 	
 	for( int nGaussians = nMinGaussianComponents; nGaussians <= nMaxGaussianComponents; nGaussians++){
 		estimator_attributes GMM_attributes = GMM::train_density(nGaussians, GMM::training_data_);
 		log_likelihood(nGaussians-nMinGaussianComponents) = GMM::validate_density(GMM_attributes, GMM::validation_data_);
 	}
 	
-	clog << "Log-likelihoods: " << log_likelihood << "\n";
+	std::cout << "Log-likelihoods: " << log_likelihood << "\n";
 	int argmax = 0;
 	double max_log_likelihood = round(log_likelihood(0)*100);
 	
@@ -227,18 +230,20 @@ void GMM::fitDensity(int nMinGaussianComponents, int nMaxGaussianComponents){
 			max_log_likelihood = round(log_likelihood(i)*100);
 		}
 	}
-	clog << "Argmax: " << argmax << "\n";
+	std::cout << "Argmax: " << argmax << "\n";
 	
 	// Estimate density with the best parameter set
 	estimator_attributes GMM_attributes_final = GMM::train_density(nMinGaussianComponents+argmax, GMM::x_);
 	
-	GMM::write_to_file(GMM_attributes_final, GMM::x_);
+	GMM::extract_clusters(GMM_attributes_final);
+	GMM::write_to_file(GMM_attributes_final);
+	
 	return;
 }
 
-void GMM::write_to_file(estimator_attributes GMM_attributes, Eigen::MatrixXd x){
+void GMM::write_to_file(estimator_attributes GMM_attributes){
 	GMM_attributes.Gaussian_projections_ = GMM::densityEvaluator_.project_on_Gaussians(GMM_attributes.centers_,
-			GMM_attributes.covariances_,GMM_attributes.nComponents_, x);
+			GMM_attributes.covariances_,GMM_attributes.nComponents_, GMM::x_);
 	Eigen::VectorXd density = GMM::densityEvaluator_.get_density(GMM_attributes.amplitudes_,GMM_attributes.Gaussian_projections_);
 	
 	#pragma omp parallel for
@@ -246,15 +251,55 @@ void GMM::write_to_file(estimator_attributes GMM_attributes, Eigen::MatrixXd x){
 		density(i) = -log(density(i));  // Free energy in [kT] unit
 	}
 	
-	cout << density << endl;  // Write free energy
+	// Write the free energy to file
+	ofstream fID;
+	fID.open ("free_energy_kT_" + GMM::file_label_ + ".txt");
+	fID << density;
+	fID.close();
 	
-	// Print final component centers and amplitudes
-	for(int iComp = 0; iComp < GMM_attributes.nComponents_;iComp++){
-		clog << GMM_attributes.centers_[iComp].transpose() << "\n";
-	}
+	std::cout << "Free energy saved to file: " << "free_energy_kT_" << GMM::file_label_ << ".txt" << std::endl;
 	
-	clog << GMM_attributes.amplitudes_ << endl;
 	return;
+}
+
+void GMM::write_cluster_indices(){
+	std::string file_name = "cluster_indices_" + GMM::file_label_ + ".txt";
+	
+	ofstream fID;
+	fID.open (file_name);
+	
+	for(int i = 0; i < GMM::cluster_indices_.size(); i++){
+		fID << GMM::cluster_indices_[i] << "\n";
+	}
+	fID.close();
+	std::cout << "Cluster indices saved to file: " << file_name << std::endl;
+	return;
+}
+
+void GMM::extract_clusters(estimator_attributes GMM_attributes){
+		
+	std::cout << "Extracting clusters " << std::endl;
+	int nPoints = GMM::x_.rows();
+	
+	// Project on the estimated Gaussians. A point belongs to the cluster with largest component (Gaussian) contribution.
+	GMM_attributes.Gaussian_projections_ = GMM::densityEvaluator_.project_on_Gaussians(GMM_attributes.centers_,
+			GMM_attributes.covariances_,GMM_attributes.nComponents_, GMM::x_);
+	
+	Eigen::VectorXd component_contributions(GMM_attributes.nComponents_);	
+	GMM::cluster_indices_ = std::vector<int>(nPoints);
+	double max_contribution = 0.0;
+	
+	for(int i = 0; i < nPoints; i++){
+		component_contributions = GMM_attributes.Gaussian_projections_.row(i);
+		GMM::cluster_indices_[i] = 1;
+		max_contribution = component_contributions[0];
+		for (int j = 1; j < GMM_attributes.nComponents_; j++){
+			if(max_contribution < component_contributions[j]){
+				max_contribution = component_contributions[j];
+				GMM::cluster_indices_[i] = j+1;
+			}
+		}
+	}
 }
 
 /*

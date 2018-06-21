@@ -1,6 +1,8 @@
 /*
 *	K-means clustering
 *
+*	Annie Westerlund
+* 	2018, KTH
 */
 
 #include <vector>
