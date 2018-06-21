@@ -9,10 +9,11 @@ Installing estimator:
 - mkdir build
 - cd build
 - cmake ..
-- make
 - sudo make install
 
-Example of running free energy estimation on data set "data.dat" with dimensionality 3:
-- GMM_free_energy data.dat 3 > free_energy.txt
+Example of running free energy estimation and clustering on data set "data.dat" with dimensionality 2 and label "sys1":
+ $ GMM_free_energy -f data.dat -d 2 -c -fe sys1
 
-free_energy.txt contains the free energy corresponding to each point in data.dat.
+This generates free_energy_kT_sys1.txt and cluster_indices_sys1.txt which contain the free energy and cluster index corresponding to each point in data.dat, respectively. 
+
+Remove option -c if you don't want the cluster_indices_label.txt.
