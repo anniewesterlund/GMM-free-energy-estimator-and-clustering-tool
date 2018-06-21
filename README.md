@@ -14,6 +14,7 @@ Installing estimator:
 - sudo make install
 
 Example of running free energy estimation and clustering on data set "data.dat" with dimensionality 2 and label "sys1":
+
  $ GMM_free_energy -f data.dat -d 2 -c -fe sys1
 
 This generates free_energy_kT_sys1.txt and cluster_indices_sys1.txt which contain the free energy and cluster index corresponding to each point in data.dat, respectively. 
