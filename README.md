@@ -20,6 +20,7 @@ Example of running free energy estimation and clustering on data set "data.dat" 
 This generates 
 - free_energy_kT_sys1.txt and 
 - cluster_indices_sys1.txt 
+
 which contain the free energy and cluster index corresponding to each point in data.dat, respectively. 
 
 Remove option -c if you don't want the cluster_indices_label.txt.
