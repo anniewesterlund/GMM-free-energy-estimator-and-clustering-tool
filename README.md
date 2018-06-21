@@ -3,6 +3,8 @@
 Implementation of free energy estimator based on Gaussian Mixture models and cross-validation in C++:
 https://pubs.acs.org/doi/abs/10.1021/acs.jctc.7b00346
 
+Each point is assigned to a cluster based on the estimated density.
+
 This requires Eigen (https://eigen.tuxfamily.org/dox/GettingStarted.html) - downloaded and in the path.
 
 Installing estimator:
