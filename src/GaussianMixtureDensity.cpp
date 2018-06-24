@@ -9,7 +9,7 @@
 #include "GaussianMixtureDensity.h"
 
 GMDensity::GMDensity(){
-	GMDensity::pi_ = 3.14159265359;
+	GMDensity::pi_ = std::acos(-1.0);
 }
 
 Eigen::VectorXd GMDensity::multivariate_normal_pdf(Eigen::MatrixXd x, Eigen::VectorXd mean, Eigen::MatrixXd covariance){
@@ -20,7 +20,7 @@ Eigen::VectorXd GMDensity::multivariate_normal_pdf(Eigen::MatrixXd x, Eigen::Vec
 	
 	Eigen::MatrixXd inv_covariance = covariance.inverse();
 	double cov_det = covariance.determinant();
-	double normalization_factor = sqrt(pow(2.0*GMDensity::pi_,nDims)*cov_det);
+	double normalization_factor = std::sqrt(pow(2.0*GMDensity::pi_,nDims)*cov_det);
 	double exponent;
 	Eigen::VectorXd deviation;
 	
@@ -28,7 +28,7 @@ Eigen::VectorXd GMDensity::multivariate_normal_pdf(Eigen::MatrixXd x, Eigen::Vec
 	for(int iPoint = 0; iPoint < nPoints; iPoint++){
 		deviation =  x.row(iPoint).transpose()-mean;		
 		exponent = deviation.transpose()*inv_covariance*deviation;
-		component_projection(iPoint) = exp(-exponent/2)/normalization_factor;
+		component_projection(iPoint) = std::exp(-exponent/2)/normalization_factor;
 	}
 	
 	return component_projection;
@@ -57,11 +57,8 @@ Eigen::VectorXd GMDensity::get_density(Eigen::VectorXd amplitudes, Eigen::Matrix
 double GMDensity::compute_log_likelihood(Eigen::VectorXd amplitudes, Eigen::MatrixXd gaussian_projections){
 	
 	Eigen::VectorXd GM_pdf = GMDensity::get_density(amplitudes, gaussian_projections);
+	GM_pdf = GM_pdf.log();
+	double log_likelihood = GM_pdf.sum();
 	
-	double log_likelihood = 0.0;
-	#pragma omp parallel for reduction (+:log_likelihood)
-	for(int i = 0; i < GM_pdf.size(); i++){
-		log_likelihood += log(GM_pdf(i));
-	}
 	return log_likelihood;
 }

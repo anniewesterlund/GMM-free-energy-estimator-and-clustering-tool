@@ -8,6 +8,7 @@
 **********************************/
 #include <vector>
 #include <Eigen/Eigen>
+#include <unsupported/Eigen/MatrixFunctions>
 #include <omp.h>
 
 class GMDensity {
