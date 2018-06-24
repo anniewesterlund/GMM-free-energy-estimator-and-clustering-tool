@@ -13,7 +13,7 @@ This requires Eigen (https://eigen.tuxfamily.org/dox/GettingStarted.html) - down
 - cmake ..
 - sudo make install
 
-# _To show (brief) documentation:_
+# _Showing (brief) documentation:_
 
 $ GMM_free_energy -h
 
