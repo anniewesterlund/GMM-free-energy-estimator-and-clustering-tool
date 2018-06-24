@@ -1,4 +1,4 @@
-# GMM_free_energy_estimator_Cpp
+# GMM free energy estimator and clustering tool
 
 Implementation of free energy estimator based on Gaussian Mixture models and cross-validation in C++:
 https://pubs.acs.org/doi/abs/10.1021/acs.jctc.7b00346
@@ -7,25 +7,26 @@ Each point is assigned to a cluster based on the estimated density.
 
 This requires Eigen (https://eigen.tuxfamily.org/dox/GettingStarted.html) - downloaded and in the path.
 
-Installing estimator:
+# _Installing estimator_:
 - mkdir build
 - cd build
 - cmake ..
 - sudo make install
 
-To show (brief) documentation:
+# _To show (brief) documentation:_
 
 $ GMM_free_energy -h
 
 
 
-Example of running free energy estimation and clustering on data set "data.dat" with dimensionality 2 and label "sys1":
+# _Example of running_ 
+Free energy estimation and clustering on data set "data.dat" with dimensionality 2 and label "sys1":
 
  $ GMM_free_energy -f data.dat -d 2 -c -fe sys1
 
 
 
-This generates 
+_This generates_
 1. free_energy_sys1.txt 
 2. cluster_indices_sys1.txt 
 
