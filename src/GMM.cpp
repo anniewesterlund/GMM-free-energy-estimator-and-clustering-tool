@@ -254,11 +254,11 @@ void GMM::write_to_file(estimator_attributes GMM_attributes){
 	
 	// Write the free energy to file
 	std::ofstream fID;
-	fID.open ("free_energy_kT_" + GMM::file_label_ + ".txt");
+	fID.open ("free_energy_" + GMM::file_label_ + ".txt");
 	fID << density;
 	fID.close();
 	
-	std::cout << "Free energy saved to file: " << "free_energy_kT_" << GMM::file_label_ << ".txt" << std::endl;
+	std::cout << "Free energy saved to file: " << "free_energy_" << GMM::file_label_ << ".txt" << std::endl;
 	
 	return;
 }
