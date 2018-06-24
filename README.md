@@ -7,7 +7,7 @@ Each point is assigned to a cluster based on the estimated density.
 
 This requires Eigen (https://eigen.tuxfamily.org/dox/GettingStarted.html) - downloaded and in the path.
 
-# _Installing estimator_:
+# _Installing tool:_
 - mkdir build
 - cd build
 - cmake ..
@@ -19,7 +19,7 @@ $ GMM_free_energy -h
 
 
 
-# _Example of running_ 
+# _Example of running:_ 
 Free energy estimation and clustering on data set "data.dat" with dimensionality 2 and label "sys1":
 
  $ GMM_free_energy -f data.dat -d 2 -c -fe sys1
