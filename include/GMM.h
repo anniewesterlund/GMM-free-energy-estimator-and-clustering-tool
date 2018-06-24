@@ -33,7 +33,7 @@ class GMM {
 	// Public functions
 	public:
 	
-	GMM(std::vector<std::vector<double>> data, double convergence_tol, int max_interations, std::string file_label);
+	GMM(std::vector<std::vector<double>> data, double temperature, double convergence_tol, int max_interations, std::string file_label);
 	
 	double validate_density(estimator_attributes GMM_obj, Eigen::MatrixXd x);
 	void fitDensity(int nMinGaussianComponents, int nMaxGaussianComponents);
@@ -66,6 +66,9 @@ class GMM {
 	
 	int max_iter_;
 	double convergence_tol_;
+	
+	double boltzmann_constant_;
+	double temperature_;
 	
 	std::string file_label_;
 	

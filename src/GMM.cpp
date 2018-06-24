@@ -17,10 +17,7 @@
 #include <omp.h>
 #include "Kmeans.cpp"
 #include "GaussianMixtureDensity.cpp"
-// #include "ExpectationMaximization.cpp"
 #include "GMM.h"
-
-using namespace std;
 
 estimator_attributes::estimator_attributes(int nGaussianComponents, Eigen::MatrixXd x):nComponents_{nGaussianComponents}{
 
@@ -72,20 +69,24 @@ estimator_attributes::estimator_attributes(int nGaussianComponents, Eigen::Matri
 	for(int iComponent = 0; iComponent < nGaussianComponents; iComponent++){
 		estimator_attributes::covariances_[iComponent] = covariance;
 	}
-}	
+};
 
-GMM::GMM(vector<vector<double>> data, double convergence_tol, int max_iterations, std::string file_label){
+GMM::GMM(std::vector<std::vector<double>> data, double temperature, double convergence_tol,
+	 int max_iterations, std::string file_label){
 	GMM::nPoints_ = data.size();
+	GMM::temperature_ = temperature;
 	GMM::convergence_tol_ = convergence_tol;
 	GMM::max_iter_ = max_iterations;
+	
+	GMM::boltzmann_constant_ = 0.0019872041; // [kcal/(mol K)]
 	
 	GMM::file_label_ = file_label;
 	
 	if (GMM::nPoints_ > 0){
-		GMM::cluster_indices_ = vector<int>(GMM::nPoints_);
+		GMM::cluster_indices_ = std::vector<int>(GMM::nPoints_);
 		GMM::nDims_ = data[0].size();
 	}else{
-		cout << "No points supplied." << std::endl;
+		std::cout << "No points supplied." << std::endl;
 		exit(1);
 	}
 	
@@ -105,7 +106,7 @@ GMM::GMM(vector<vector<double>> data, double convergence_tol, int max_iterations
 			}
 		}
 	}
-}
+};
 
 void GMM::expectation_step(estimator_attributes &GMM_attributes){
 	
@@ -192,7 +193,7 @@ estimator_attributes GMM::train_density(int nGaussianComponents, Eigen::MatrixXd
 			}
 		}
 		
-		if (isnormal(log_likelihood)){
+		if (std::isnormal(log_likelihood)){
 			break;
 		}
 		
@@ -225,7 +226,7 @@ void GMM::fitDensity(int nMinGaussianComponents, int nMaxGaussianComponents){
 	double max_log_likelihood = round(log_likelihood(0)*100);
 	
 	for(int i = 0; i < log_likelihood.rows(); i++){
-		if (max_log_likelihood < round(log_likelihood(i)*100) && isnormal(log_likelihood(i))){
+		if (max_log_likelihood < round(log_likelihood(i)*100) && std::isnormal(log_likelihood(i))){
 			argmax = i;
 			max_log_likelihood = round(log_likelihood(i)*100);
 		}
@@ -248,11 +249,11 @@ void GMM::write_to_file(estimator_attributes GMM_attributes){
 	
 	#pragma omp parallel for
 	for(int i = 0; i< density.rows(); i++){
-		density(i) = -log(density(i));  // Free energy in [kT] unit
+		density(i) = -GMM::temperature_*GMM::boltzmann_constant_*log(density(i));  // Free energy in [kT] unit
 	}
 	
 	// Write the free energy to file
-	ofstream fID;
+	std::ofstream fID;
 	fID.open ("free_energy_kT_" + GMM::file_label_ + ".txt");
 	fID << density;
 	fID.close();
@@ -265,7 +266,7 @@ void GMM::write_to_file(estimator_attributes GMM_attributes){
 void GMM::write_cluster_indices(){
 	std::string file_name = "cluster_indices_" + GMM::file_label_ + ".txt";
 	
-	ofstream fID;
+	std::ofstream fID;
 	fID.open (file_name);
 	
 	for(int i = 0; i < GMM::cluster_indices_.size(); i++){

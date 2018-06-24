@@ -30,6 +30,14 @@ void ArgParser::add_parameter(std::string flag, std::string label, std::string t
 		ArgParser::is_next_input_int_.push_back(false);
 		ArgParser::n_int_args_++;
 		
+	}else if (type.compare("double")==0){
+		
+		ArgParser::flag_double_.push_back(flag);
+		ArgParser::label_double_.push_back(label);
+		ArgParser::value_map_double_[label] = 0;
+		ArgParser::is_next_input_double_.push_back(false);
+		ArgParser::n_double_args_++;
+		
 	}else if (type.compare("bool")==0){
 		
 		ArgParser::flag_bool_.push_back(flag);
@@ -60,6 +68,16 @@ void ArgParser::add_parameter(std::string flag, std::string label, std::string t
 		ArgParser::n_int_args_++;
 }
 
+void ArgParser::add_parameter(std::string flag, std::string label, std::string type, double default_value){
+	// Add an argument parameter. 
+	// Separate types = {"str","int","bool"}.
+		ArgParser::flag_double_.push_back(flag);
+		ArgParser::label_double_.push_back(label);
+		ArgParser::value_map_double_[label] = default_value;
+		ArgParser::is_next_input_double_.push_back(false);
+		ArgParser::n_double_args_++;
+}
+
 void ArgParser::add_parameter(std::string flag, std::string label, std::string type, bool default_value){
 	// Add an argument parameter. 
 	// Separate types = {"str","int","bool"}.
@@ -73,6 +91,12 @@ void ArgParser::set_value_int(int index, int value){
 	// Set an int value
 	std::string label = ArgParser::label_int_[index];
 	ArgParser::value_map_int_[label] = value;
+}
+
+void ArgParser::set_value_double(int index, double value){
+	// Set an int value
+	std::string label = ArgParser::label_double_[index];
+	ArgParser::value_map_double_[label] = value;
 }
 
 void ArgParser::set_value_str(int index, std::string value){
@@ -89,7 +113,7 @@ void ArgParser::set_value_bool(int index, bool value){
 
 void ArgParser::show_documentation(){
 	// Print the explanation
-	std::clog << ArgParser::epilog_ << std::endl;
+	std::cout << ArgParser::epilog_ << std::endl;
 }
 
 void ArgParser::parse_arguments(const int argc, const char* argv[]){
@@ -123,6 +147,16 @@ void ArgParser::parse_arguments(const int argc, const char* argv[]){
 			}
 		}		
 		
+		// Update values from input doubles
+		for(int j = 0; j < ArgParser::n_double_args_; j++){
+			if (ArgParser::is_next_input_double_[j]){
+				check_flag = false;
+				ArgParser::is_next_input_double_[j] = false;
+				ArgParser::set_value_double(j, std::atof(argv[i]));
+				continue;
+			}
+		}
+		
 		if (check_flag){
 			
 			// Check for help flag
@@ -147,7 +181,15 @@ void ArgParser::parse_arguments(const int argc, const char* argv[]){
 					continue;
 				}
 			}
-						
+			
+			/*// Check for double inputs
+			for(int j = 0; j < ArgParser::n_double_args_; j++){
+				if (input_string.compare(ArgParser::flag_double_[j])==0){
+					ArgParser::is_next_input_double_[j] = true;
+					continue;
+				}
+			}*/
+									
 			// Check for bool inputs
 			for(int j = 0; j < ArgParser::n_bool_args_; j++){
 				if (input_string.compare(ArgParser::flag_bool_[j])==0){
@@ -172,6 +214,11 @@ void ArgParser::get_value(std::string label, std::string &value){
 void ArgParser::get_value(std::string label, int &value){
 	// Return the value corresponding to the label
 	value = ArgParser::value_map_int_[label];
+}
+
+void ArgParser::get_value(std::string label, double &value){
+	// Return the value corresponding to the label
+	value = ArgParser::value_map_double_[label];
 }
 
 void  ArgParser::get_value(std::string label, bool &value){
